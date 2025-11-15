@@ -1,0 +1,48 @@
+from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtOpenGLWidgets import QOpenGLWidget
+from PyQt6.QtCore import QTimer
+from OpenGL.GL import *
+import sys
+
+
+class GameScene(QOpenGLWidget):
+    def __init__(self):
+        super().__init__()
+        self.x = -0.8     # x konumu
+        self.speed = 0.02 # nesne hızı
+
+        # 60 FPS timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update)
+        self.timer.start(16)
+
+    def initializeGL(self):
+        glClearColor(0, 0, 0, 1)  # arka plan renk kodu (siyah)
+
+    def paintGL(self):
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        # --- TOPU ÇİZ ---
+        glColor3f(1, 0, 0)  # kırmızı renk kodu (nesne)
+        glBegin(GL_QUADS)
+        glVertex2f(self.x - 0.1, -0.1)
+        glVertex2f(self.x + 0.1, -0.1)
+        glVertex2f(self.x + 0.1,  0.1)
+        glVertex2f(self.x - 0.1,  0.1)
+        glEnd()
+
+        # --- FİZİK: HAREKET ---
+        self.x += self.speed
+
+        # --- DUVARA ÇARPINCA SEKME ---
+        if self.x > 0.8 or self.x < -0.8:
+            self.speed = -self.speed
+
+
+app = QApplication(sys.argv)
+win = QMainWindow()
+win.setCentralWidget(GameScene())
+win.setWindowTitle("PyQt6 OpenGl")
+win.resize(600, 400)
+win.show()
+app.exec()
