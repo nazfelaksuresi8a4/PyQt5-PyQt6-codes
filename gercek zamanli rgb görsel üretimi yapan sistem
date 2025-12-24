@@ -1,0 +1,85 @@
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import * 
+from PyQt5.QtGui import * 
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt 
+import sys as _s
+#import winsound as ws
+import numpy as np 
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        main_layout = QVBoxLayout()
+        main_widget = QWidget()
+        main_widget.setLayout(main_layout)
+
+        main_splt = QSplitter(Qt.Vertical)
+        second_splt = QSplitter(Qt.Vertical)
+        
+        main_layout.addWidget(main_splt)
+        main_layout.addWidget(second_splt)
+
+        self.fig,self.ax = plt.subplots(nrows=1,ncols=1,figsize=(5,4))
+        self.figcanvas = FigureCanvas(figure=self.fig)
+
+        self.slider_notation = QSlider(Qt.Horizontal)
+        self.slider_height = QSlider(Qt.Horizontal)
+        self.slider_width = QSlider(Qt.Horizontal)
+        self.slider_nX = QSlider(Qt.Horizontal)
+
+        main_splt.addWidget(self.figcanvas)
+
+        self.sliders = [self.slider_notation,
+                        self.slider_height,
+                        self.slider_width,
+                        self.slider_nX]
+        
+        for self.currSlider in self.sliders:
+            self.currSlider.setRange(0,256)
+            second_splt.addWidget(self.currSlider)
+        
+        self.slider_nX.setRange(0,4)
+        self.slider_notation.setRange(0,256*256)
+    
+
+        self.slider_notation.valueChanged.connect(lambda : self.show_rgb(self.slider_notation.value(),
+                                                                         self.slider_height.value(),
+                                                                         self.slider_width.value(),
+                                                                         self.slider_nX.value()))
+        self.slider_height.valueChanged.connect(lambda : self.show_rgb(self.slider_notation.value(),
+                                                                         self.slider_height.value(),
+                                                                         self.slider_width.value(),
+                                                                         self.slider_nX.value()))
+        self.slider_width.valueChanged.connect(lambda : self.show_rgb(self.slider_notation.value(),
+                                                                         self.slider_height.value(),
+                                                                         self.slider_width.value(),
+                                                                         self.slider_nX.value()))
+        self.slider_nX.valueChanged.connect(lambda : self.show_rgb(self.slider_notation.value(),
+                                                                         self.slider_height.value(),
+                                                                         self.slider_width.value(),
+                                                                         self.slider_nX.value()))
+ 
+        self.setCentralWidget(main_widget)
+    
+    def create_rgb(self,notation,height,width,nX):
+        return np.random.normal(0,notation,(height,width,nX))
+
+    def show_rgb(self,nB,hX,wX,nXf):
+        self.rgb = self.create_rgb(nB,hX,wX,nXf)
+        print(self.rgb.shape)
+
+        if len(self.rgb.shape) >= 2:
+            if self.rgb.shape[2] >= 2 and self.rgb.shape[0] != self.rgb.shape[1] and self.rgb.shape[1] != self.rgb.shape[0]:
+                try:
+                    self.ax.clear()
+                    self.ax.imshow(self.rgb)
+                    self.figcanvas.draw()
+                except Exception as e:
+                    print(e)
+
+if __name__ == "__main__":
+    sp = QApplication(_s.argv)
+    sw = MainWindow()
+    sw.show()
+    _s.exit(sp.exec_())
